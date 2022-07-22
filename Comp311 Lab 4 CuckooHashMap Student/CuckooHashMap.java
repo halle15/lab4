@@ -1,6 +1,7 @@
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
@@ -28,6 +29,9 @@ public class CuckooHashMap<K, V> implements Map<K, V> {
 	@Override
 	public void clear() {
 		table = new ArrayList<MapEntry>(10);
+		for(int i = 0; i < 10; i++) {
+			table.add(null);
+		}
 		size = 0;
 		numBuckets = 10;
 
@@ -88,13 +92,12 @@ public class CuckooHashMap<K, V> implements Map<K, V> {
 	}
 
 	private int hf1(int hashcode) {
-		return Math.abs(hashcode) % table.size();
+		return Math.abs(hashcode) % numBuckets;
 
 	}
 
 	private int hf2(int hashcode) {
-		System.out.println((hashcode + 3) % 20);
-		return (hashcode + 3) % table.size();
+		return (hashcode + 3) % numBuckets;
 
 	}
 
@@ -107,12 +110,10 @@ public class CuckooHashMap<K, V> implements Map<K, V> {
 		while (table.size() < amt) {
 			table.add(null);
 		}
-		System.out.println("BRUH: " + table.size());
 
 		for (MapEntry e : old) {
 			if (e != null) {
 				insert(e);
-				System.out.println("WE INSERTED");
 			}
 		}
 
@@ -226,7 +227,6 @@ public class CuckooHashMap<K, V> implements Map<K, V> {
 			MapEntry e = new MapEntry((K) key, get(key));
 
 			for (int i = 0; i < table.size(); i++) {
-				System.out.println(table.size());
 				e = table.get(i);
 				if (e != null) {
 					if (e.key == key) {
@@ -244,7 +244,12 @@ public class CuckooHashMap<K, V> implements Map<K, V> {
 	public String toString() {
 		String r = "";
 		for (MapEntry m : table) {
+			if(m != null) {
 			r = r.concat("KEY: " + m.key + "|VALUE: " + m.value + "\n");
+			}
+			else {
+				
+			}
 		}
 
 		return r;
@@ -258,22 +263,46 @@ public class CuckooHashMap<K, V> implements Map<K, V> {
 
 	public void putAll(Map<? extends K, ? extends V> map) {
 		
-		map.forEach((k, v) -> putCheck(k, v));;  // if this works i can not believe I implemented a lambda properly
+		
+	map.forEach((k, v) -> putCheck(k, v)); // if this works i can not believe I implemented a lambda properly
 		
 		//Iterator<Map.Entry<K, V>> itr = map.entrySet().iterator();
 	}
+	
 
 	@Override
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
-		return null;
+		Set<Map.Entry<K, V>> entrySet = new HashSet<Map.Entry<K, V>>();
+		for(MapEntry e : table) {
+			if(e != null) {
+				Map.Entry<K, V> entry;
+				entry = new AbstractMap.SimpleEntry<K, V>(e.getKey(), e.getValue());
+				
+				entrySet.add(entry);
+			}
+		}
+		return entrySet;
 	}
 
 	public Set<K> keySet() {
-		return null;
+		Set<K> keySet = new HashSet<K>();
+		for(MapEntry e : table) {
+			if(e != null) {
+				keySet.add(e.getKey());
+			}
+		}
+		
+		return keySet;
 	}
 
 	public Collection<V> values() {
-		return null;
+		Collection<V> vals = new ArrayList<V>();
+		for(MapEntry e : table) {
+			if(e != null) {
+				vals.add(e.getValue());
+			}
+		}
+		return vals;
 	}
 
 	public class MapEntry implements Entry<K, V> {
