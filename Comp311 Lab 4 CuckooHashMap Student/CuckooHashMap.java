@@ -39,7 +39,7 @@ public class CuckooHashMap<K, V> implements Map<K, V> {
 
 	@Override
 	public boolean isEmpty() {
-		return table.isEmpty();
+		return(size == 0);
 	}
 
 	public int size() {
